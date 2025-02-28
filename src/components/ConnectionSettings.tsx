@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save, RefreshCw, Database, Wifi } from "lucide-react";
+import { testMQTTConnection, testMongoDBConnection } from "@/api/deviceApi";
 
 interface ConnectionSettingsProps {
   device: Device;
@@ -166,18 +167,59 @@ const ConnectionSettings = ({ device, onUpdate }: ConnectionSettingsProps) => {
     }
   };
 
-  const testConnection = (type: 'mqtt' | 'mongodb') => {
+  const testConnection = async (type: 'mqtt' | 'mongodb') => {
     setTestingConnection(true);
     
-    // Simulate testing connection
-    setTimeout(() => {
-      setTestingConnection(false);
-      
+    try {
+      if (type === 'mqtt') {
+        const mqttValues = mqttForm.getValues();
+        const result = await testMQTTConnection({
+          brokerUrl: mqttValues.brokerUrl,
+          username: mqttValues.username || undefined,
+          password: mqttValues.password || undefined,
+        });
+        
+        if (result.success) {
+          toast({
+            title: "Connection Test",
+            description: result.message,
+          });
+        } else {
+          toast({
+            title: "Connection Test Failed",
+            description: result.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        const mongoValues = mongoForm.getValues();
+        const result = await testMongoDBConnection({
+          connectionString: mongoValues.connectionString,
+          database: mongoValues.database,
+        });
+        
+        if (result.success) {
+          toast({
+            title: "Connection Test",
+            description: result.message,
+          });
+        } else {
+          toast({
+            title: "Connection Test Failed",
+            description: result.message,
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
       toast({
-        title: "Connection Test",
-        description: `Successfully connected to ${type === 'mqtt' ? 'MQTT broker' : 'MongoDB'}`,
+        title: "Error",
+        description: `Failed to test connection: ${error instanceof Error ? error.message : String(error)}`,
+        variant: "destructive",
       });
-    }, 2000);
+    } finally {
+      setTestingConnection(false);
+    }
   };
 
   return (

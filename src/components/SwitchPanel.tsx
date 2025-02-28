@@ -222,7 +222,10 @@ const SwitchPanel = ({ device, onUpdate }: SwitchPanelProps) => {
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <div className={`p-2 rounded-full ${getColorClass(sw.color || "green")}`}>
-                    {React.createElement(getIconComponent(sw.icon || "power"), { size: 20 })}
+                    {(() => {
+                      const IconComponent = getIconComponent(sw.icon || "power");
+                      return <IconComponent size={20} />;
+                    })()}
                   </div>
                   <div className="font-medium">Switch {index + 1}</div>
                 </div>
@@ -251,7 +254,10 @@ const SwitchPanel = ({ device, onUpdate }: SwitchPanelProps) => {
                         {iconOptions.map(icon => (
                           <SelectItem key={icon.value} value={icon.value}>
                             <div className="flex items-center">
-                              {React.createElement(icon.icon, { className: "mr-2", size: 16 })}
+                              {(() => {
+                                const IconComp = icon.icon;
+                                return <IconComp className="mr-2" size={16} />;
+                              })()}
                               {icon.label}
                             </div>
                           </SelectItem>
