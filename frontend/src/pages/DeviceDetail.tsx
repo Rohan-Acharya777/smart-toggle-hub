@@ -37,10 +37,10 @@ const DeviceDetail = () => {
         description: "Device updated successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to update device",
+        description: error instanceof Error ? error.message : "Failed to update device",
         variant: "destructive",
       });
     },
@@ -55,10 +55,10 @@ const DeviceDetail = () => {
       });
       navigate("/dashboard");
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to delete device",
+        description: error instanceof Error ? error.message : "Failed to delete device",
         variant: "destructive",
       });
     },

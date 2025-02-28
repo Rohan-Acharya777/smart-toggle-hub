@@ -1,20 +1,25 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchDevices } from "@/api/deviceApi";
+import { useAuth } from "@/hooks/useAuth";
 import DevicesList from "@/components/DevicesList";
 import DeviceSwitches from "@/components/DeviceSwitches";
 import EnergyMonitor from "@/components/EnergyMonitor";
 import AddDeviceForm from "@/components/AddDeviceForm";
-import { Wifi, WifiOff, Database, AlertCircle, CheckCircle } from "lucide-react";
+import { Wifi, WifiOff, Database, AlertCircle, CheckCircle, LogOut } from "lucide-react";
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("devices");
   const [mqttStatus, setMqttStatus] = useState<'connected' | 'disconnected' | 'connecting'>('connecting');
   const [dbStatus, setDbStatus] = useState<'connected' | 'disconnected' | 'connecting'>('connecting');
@@ -34,22 +39,42 @@ const Dashboard = () => {
     }
   }, [error, toast]);
 
-  // Simulate MQTT and MongoDB connection status
+  // Check backend connection status
   useEffect(() => {
-    // Simulate connection process
-    const timer1 = setTimeout(() => {
-      setMqttStatus('connected');
-    }, 1500);
-    
-    const timer2 = setTimeout(() => {
-      setDbStatus('connected');
-    }, 2200);
-    
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
+    const checkBackendConnection = async () => {
+      try {
+        // Simple health check to the backend
+        const response = await fetch('http://localhost:5000/health');
+        
+        if (response.ok) {
+          // If backend is up, we assume both services are connected
+          // In a real app, you'd check this from the backend
+          setTimeout(() => setMqttStatus('connected'), 800);
+          setTimeout(() => setDbStatus('connected'), 1200);
+        } else {
+          setMqttStatus('disconnected');
+          setDbStatus('disconnected');
+        }
+      } catch (error) {
+        console.error("Backend connection error:", error);
+        setMqttStatus('disconnected');
+        setDbStatus('disconnected');
+      }
     };
+    
+    checkBackendConnection();
+    
+    // Refresh connection status every 30 seconds
+    const interval = setInterval(checkBackendConnection, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    queryClient.clear();
+    navigate('/');
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -83,7 +108,7 @@ const Dashboard = () => {
         >
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Smart IoT Dashboard</h1>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 items-center">
               <div className="flex items-center">
                 {mqttStatus === 'connected' ? (
                   <div className="flex items-center text-green-600 dark:text-green-400">
@@ -120,10 +145,14 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-1" />
+                <span>Logout</span>
+              </Button>
             </div>
           </div>
           <p className="text-gray-600 dark:text-gray-300">
-            Monitor and control your connected devices
+            Welcome, {user?.name || 'User'}. Monitor and control your connected devices.
           </p>
         </motion.div>
 
