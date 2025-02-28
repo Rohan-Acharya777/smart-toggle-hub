@@ -12,6 +12,7 @@ import { fetchDeviceById, updateDevice, deleteDevice } from "@/api/deviceApi";
 import SwitchPanel from "@/components/SwitchPanel";
 import PowerGraph from "@/components/PowerGraph";
 import DeviceSettings from "@/components/DeviceSettings";
+import ConnectionSettings from "@/components/ConnectionSettings";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
 const DeviceDetail = () => {
@@ -142,6 +143,9 @@ const DeviceDetail = () => {
             <TabsTrigger value="analytics" className="py-2 px-4">
               Analytics
             </TabsTrigger>
+            <TabsTrigger value="connection" className="py-2 px-4">
+              Connection
+            </TabsTrigger>
             <TabsTrigger value="settings" className="py-2 px-4">
               Settings
             </TabsTrigger>
@@ -176,6 +180,31 @@ const DeviceDetail = () => {
                 </CardHeader>
                 <CardContent>
                   <PowerGraph deviceId={device._id} />
+                </CardContent>
+              </Card>
+            </motion.div>
+          </TabsContent>
+          
+          <TabsContent value="connection" className="mt-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>Connection Settings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ConnectionSettings 
+                    device={device} 
+                    onUpdate={(updatedDevice) => 
+                      updateDeviceMutation.mutate({ 
+                        id: device._id, 
+                        deviceData: updatedDevice 
+                      })
+                    } 
+                  />
                 </CardContent>
               </Card>
             </motion.div>
